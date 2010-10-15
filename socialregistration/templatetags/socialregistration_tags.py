@@ -1,7 +1,8 @@
 import re
 from django import template
 from django.conf import settings
-from django.template import resolve_variable, Variable
+from django.utils.safestring import mark_safe
+from django.template import Variable
 
 register = template.Library()
 
@@ -19,7 +20,7 @@ class CsrfNode(template.Node):
             from django.template.defaulttags import CsrfTokenNode
             return CsrfTokenNode().render(context)
         except ImportError:
-            return u''
+            return mark_safe(u'')
 
 
 @register.tag
