@@ -34,33 +34,26 @@ if getattr(settings, 'FACEBOOK_API_KEY', None) is not None:
 
 #Setup Twitter URLs if there's an API key specified
 if getattr(settings, 'TWITTER_CONSUMER_KEY', None) is not None:
-    urlpatterns = urlpatterns + patterns('',
-        url('^twitter/redirect/$', 'socialregistration.views.oauth_redirect',
-            dict(
-                consumer_key=getattr(settings, 'TWITTER_CONSUMER_KEY', ''),
-                secret_key=getattr(settings, 'TWITTER_CONSUMER_SECRET_KEY', ''),
-                request_token_url=getattr(settings, 'TWITTER_REQUEST_TOKEN_URL', ''),
-                access_token_url=getattr(settings, 'TWITTER_ACCESS_TOKEN_URL', ''),
-                authorization_url=getattr(settings, 'TWITTER_AUTHORIZATION_URL', ''),
-                callback_url='twitter_callback'
-            ),
+    oauth_data =  {
+        'consumer_key'      : getattr(settings, 'TWITTER_CONSUMER_KEY', ''),
+        'secret_key'        : getattr(settings, 'TWITTER_CONSUMER_SECRET_KEY', ''),
+        'request_token_url' : getattr(settings, 'TWITTER_REQUEST_TOKEN_URL', ''),
+        'access_token_url'  : getattr(settings, 'TWITTER_ACCESS_TOKEN_URL', ''),
+        'authorization_url' : getattr(settings, 'TWITTER_AUTHORIZATION_URL', ''),
+        'callback_url'      : 'twitter_callback'
+    }
+
+    urlpatterns += patterns('',
+        url('^twitter/redirect/$', 'socialregistration.views.oauth_redirect', oauth_data,
             name='twitter_redirect'),
 
-        url('^twitter/callback/$', 'socialregistration.views.oauth_callback',
-            dict(
-                consumer_key=getattr(settings, 'TWITTER_CONSUMER_KEY', ''),
-                secret_key=getattr(settings, 'TWITTER_CONSUMER_SECRET_KEY', ''),
-                request_token_url=getattr(settings, 'TWITTER_REQUEST_TOKEN_URL', ''),
-                access_token_url=getattr(settings, 'TWITTER_ACCESS_TOKEN_URL', ''),
-                authorization_url=getattr(settings, 'TWITTER_AUTHORIZATION_URL', ''),
-                callback_url='twitter'
-            ),
+        url('^twitter/callback/$', 'socialregistration.views.oauth_callback', oauth_data,
             name='twitter_callback'
         ),
         url('^twitter/$', 'socialregistration.views.twitter', name='twitter'),
     )
 
-urlpatterns = urlpatterns + patterns('',
+urlpatterns += patterns('',
     url('^openid/redirect/$', 'socialregistration.views.openid_redirect', name='openid_redirect'),
     url('^openid/callback/$', 'socialregistration.views.openid_callback', name='openid_callback')
 )
