@@ -40,14 +40,19 @@ if getattr(settings, 'TWITTER_CONSUMER_KEY', None) is not None:
         'request_token_url' : getattr(settings, 'TWITTER_REQUEST_TOKEN_URL', ''),
         'access_token_url'  : getattr(settings, 'TWITTER_ACCESS_TOKEN_URL', ''),
         'authorization_url' : getattr(settings, 'TWITTER_AUTHORIZATION_URL', ''),
-        'callback_url'      : 'twitter_callback'
     }
+    redirect_params = oauth_data.copy()
+    redirect_params.update({ 'callback_url': 'twitter_callback'})
+
+    callback_params = oauth_data.copy()
+    callback_params.update({ 'callback_url': 'twitter'})
+
 
     urlpatterns += patterns('',
-        url('^twitter/redirect/$', 'socialregistration.views.oauth_redirect', oauth_data,
+        url('^twitter/redirect/$', 'socialregistration.views.oauth_redirect', redirect_params,
             name='twitter_redirect'),
 
-        url('^twitter/callback/$', 'socialregistration.views.oauth_callback', oauth_data,
+        url('^twitter/callback/$', 'socialregistration.views.oauth_callback', callback_params,
             name='twitter_callback'
         ),
         url('^twitter/$', 'socialregistration.views.twitter', name='twitter'),
