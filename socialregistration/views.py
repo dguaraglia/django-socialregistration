@@ -327,9 +327,8 @@ def oauth_callback(request, consumer_key=None, secret_key=None,
     client = OAuthClient(request, consumer_key, secret_key, request_token_url,
         access_token_url, authorization_url, callback_url, parameters)
 
-    extra_context.update(dict(oauth_client=client))
-
     if not client.is_valid():
+        extra_context.update(dict(oauth_client=client))
         return render_to_response(
             template, extra_context, context_instance=RequestContext(request)
         )
