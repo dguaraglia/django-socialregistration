@@ -10,9 +10,8 @@ from django.http import HttpResponseRedirect
 
 try:
     from django.views.decorators.csrf import csrf_protect
-    has_csrf = True
 except ImportError:
-    has_csrf = False
+    csrf_protect = lambda x: x
 
 from django.contrib.auth.models import User
 from django.contrib.auth import login, authenticate, logout as auth_logout
@@ -154,8 +153,8 @@ def setup(request, template='socialregistration/setup.html',
         if 'socialregistration_profile' in request.session: del request.session['socialregistration_profile']
         return HttpResponseRedirect(_get_next(request))
 
-if has_csrf:
-    setup = csrf_protect(setup)
+# make setup CSRF-aware
+setup = csrf_protect(setup)
 
 def facebook_login(request, template='socialregistration/facebook.html',
     extra_context=dict(), account_inactive_template='socialregistration/account_inactive.html'):
