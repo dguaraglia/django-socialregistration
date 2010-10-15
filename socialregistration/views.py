@@ -16,7 +16,6 @@ except ImportError:
 
 from django.contrib.auth.models import User
 from django.contrib.auth import login, authenticate, logout as auth_logout
-from django.contrib.contenttypes.models import ContentType
 from django.contrib.sites.models import Site
 
 from socialregistration.forms import UserForm, ClaimForm, ExistingUser
