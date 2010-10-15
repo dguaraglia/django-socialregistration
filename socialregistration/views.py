@@ -65,15 +65,12 @@ def _get_next(request):
     Returns a url to redirect to after the login
     """
     if 'next' in request.session:
-        next = request.session['next']
-        del request.session['next']
-        return next
-    elif 'next' in request.GET:
-        return request.GET.get('next')
-    elif 'next' in request.POST:
-        return request.POST.get('next')
+        next = request.session.pop('next')
+    elif 'next' in request.REQUEST:
+        next = request.GET.get('next')
     else:
-        return getattr(settings, 'LOGIN_REDIRECT_URL', '/')
+        next = getattr(settings, 'LOGIN_REDIRECT_URL', '/')
+    return next
 
 def setup(request, template='socialregistration/setup.html',
     form_class=UserForm, extra_context=dict(), claim_form_class=ClaimForm):
