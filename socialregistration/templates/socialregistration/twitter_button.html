@@ -2,5 +2,5 @@
 <form class="connect-button" name="login" method="get" action="{% url twitter_redirect %}{% if content_object.app_label %}?a={{ content_object.app_label }}&m={{ content_object.model }}&i={{ content_object.key }}{% endif %}">
 {% social_csrf_token %}
 {% if next %} <input type="hidden" name="next" value="{{ next }}" /> {% endif %}
-<button class="twitter-auth" type="submit"><img src="http://apiwiki.twitter.com/f/1242697608/Sign-in-with-Twitter-lighter.png" alt="Twitter" /></button>
+<input type="image" class="twitter-auth" src="http://apiwiki.twitter.com/f/1242697608/Sign-in-with-Twitter-lighter.png" alt="Twitter" />
 </form>
