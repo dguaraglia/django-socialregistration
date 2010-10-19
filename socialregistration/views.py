@@ -67,7 +67,7 @@ def _get_next(request):
     if 'next' in request.session:
         next = request.session.pop('next')
     elif 'next' in request.REQUEST:
-        next = request.GET.get('next')
+        next = request.REQUEST.get('next')
     else:
         next = getattr(settings, 'LOGIN_REDIRECT_URL', '/')
     return next
@@ -149,17 +149,20 @@ def setup(request, template='socialregistration/setup.html',
                 return HttpResponseRedirect(_get_next(request))
         except ExistingUser:
             username = request.POST.get('username')
-            return HttpResponseRedirect(reverse('socialregistration_claim', kwargs={'username': username}))
+            redirect = reverse('socialregistration_claim', kwargs={'username': username})
+
+            # pass the next address as a GET parameter
+            next = _get_next(request)
+            if next:
+                from urllib import urlencode
+                redirect += '?' + urlencode({'next': next})
+
+            return HttpResponseRedirect(redirect)
     else:
         form = form_class(social_user, social_profile)
 
     return render_to_response(template, {'form': form},
         context_instance=RequestContext(request))
-
-# make setup CSRF-aware
-from django.views.decorators.csrf import csrf_exempt
-# setup = csrf_protect(setup)
-setup = csrf_exempt(setup)
 
 def facebook_login(request, template='socialregistration/facebook.html',
     extra_context=dict(), account_inactive_template='socialregistration/account_inactive.html'):
