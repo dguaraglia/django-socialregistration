@@ -12,6 +12,9 @@ urlpatterns = patterns('',
     url('^setup/$', 'socialregistration.views.setup',
         name='socialregistration_setup'),
 
+    url('^claim/(?P<username>\w+)/$', 'socialregistration.views.claim',
+        name="socialregistration_claim"),
+
     url('^logout/$', 'socialregistration.views.logout',
         name='social_logout'),
 

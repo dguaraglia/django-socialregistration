@@ -1,15 +1,14 @@
 {% load socialregistration_tags %}
-<h1>Setup</h1>
+<h1>Claim username</h1>
 {% if error %}
 	<p>Your session timed out. Please try again.</p>
 {% else %}
-  Please choose a username for your account. You can optionally provide an email address.
-
+  To use your existing account, please enter its credentials below:
   <form action="." method="post">
       <table>
           {{ form }}
       </table>
       {% social_csrf_token %}
-      <input type="submit" value="save" />
+      <input type="submit" value="claim" />
   </form>
 {% endif %}

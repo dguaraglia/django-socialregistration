@@ -72,8 +72,44 @@ def _get_next(request):
         next = getattr(settings, 'LOGIN_REDIRECT_URL', '/')
     return next
 
+def _clean_session(request):
+    """
+    Remove socialregistration keys from session
+    """
+    if 'socialregistration_user' in request.session: del request.session['socialregistration_user']
+    if 'socialregistration_profile' in request.session: del request.session['socialregistration_profile']
+
+def claim(request, username, template='socialregistration/claim.html',
+    claim_form_class=ClaimForm):
+    """
+    Let the user claim an existing username
+    """
+    try:
+        social_user = request.session['socialregistration_user']
+        social_profile = request.session['socialregistration_profile']
+    except KeyError:
+        return render_to_response(
+            template, dict(error=True), context_instance=RequestContext(request))
+
+    # see what the error is. if it's just an existing user, we want to let them claim it.
+    if request.method == 'POST':
+        form = claim_form_class(social_user, social_profile, request.POST)
+
+        if form.is_valid():
+            form.save()
+
+            user = form.profile.authenticate()
+            login(request, user)
+
+            _clean_session(request)
+            return HttpResponseRedirect(_get_next(request))
+    else:
+        form = claim_form_class(social_user, social_profile, initial={'username': username})
+
+    return render_to_response(template, { 'form': form }, context_instance=RequestContext(request))
+
 def setup(request, template='socialregistration/setup.html',
-    form_class=UserForm, extra_context=dict(), claim_form_class=ClaimForm):
+    form_class=UserForm, extra_context=dict()):
     """
     Setup view to create a username & set email address after authentication
     """
@@ -84,56 +120,7 @@ def setup(request, template='socialregistration/setup.html',
         return render_to_response(
             template, dict(error=True), context_instance=RequestContext(request))
 
-    if not GENERATE_USERNAME:
-        # User can pick own username
-        if not request.method == "POST":
-            form = form_class(social_user, social_profile,)
-        else:
-            form = form_class(social_user, social_profile, request.POST)
-            try:
-                if form.is_valid():
-                    form.save()
-                    user = form.profile.authenticate()
-                    login(request, user)
-
-                    if 'socialregistration_user' in request.session: del request.session['socialregistration_user']
-                    if 'socialregistration_profile' in request.session: del request.session['socialregistration_profile']
-
-                    return HttpResponseRedirect(_get_next(request))
-            except ExistingUser:
-                # see what the error is. if it's just an existing user, we want to let them claim it.
-                if 'submitted' in request.POST:
-                    form = claim_form_class(
-                        request.session['socialregistration_user'],
-                        request.session['socialregistration_profile'],
-                        request.POST
-                    )
-                else:
-                    form = claim_form_class(
-                        request.session['socialregistration_user'],
-                        request.session['socialregistration_profile'],
-                        initial=request.POST
-                    )
-
-                if form.is_valid():
-                    form.save()
-
-                    user = form.profile.authenticate()
-                    login(request, user)
-
-                    if 'socialregistration_user' in request.session: del request.session['socialregistration_user']
-                    if 'socialregistration_profile' in request.session: del request.session['socialregistration_profile']
-
-                    return HttpResponseRedirect(_get_next(request))
-
-                extra_context['claim_account'] = True
-
-        extra_context.update(dict(form=form))
-
-        return render_to_response(template, extra_context,
-            context_instance=RequestContext(request))
-        
-    else:
+    if GENERATE_USERNAME:
         # Generate user and profile
         social_user.username = str(uuid.uuid4())[:30]
         social_user.save()
@@ -146,12 +133,33 @@ def setup(request, template='socialregistration/setup.html',
         login(request, user)
 
         # Clear & Redirect
-        if 'socialregistration_user' in request.session: del request.session['socialregistration_user']
-        if 'socialregistration_profile' in request.session: del request.session['socialregistration_profile']
+        _clean_session(request)
         return HttpResponseRedirect(_get_next(request))
 
+    # User can pick own username, hence, boilerplate!
+    if request.method == "POST":
+        form = form_class(social_user, social_profile, request.POST)
+        try:
+            if form.is_valid():
+                form.save()
+                user = form.profile.authenticate()
+                login(request, user)
+
+                _clean_session(request)
+                return HttpResponseRedirect(_get_next(request))
+        except ExistingUser:
+            username = request.POST.get('username')
+            return HttpResponseRedirect(reverse('socialregistration_claim', kwargs={'username': username}))
+    else:
+        form = form_class(social_user, social_profile)
+
+    return render_to_response(template, {'form': form},
+        context_instance=RequestContext(request))
+
 # make setup CSRF-aware
-setup = csrf_protect(setup)
+from django.views.decorators.csrf import csrf_exempt
+# setup = csrf_protect(setup)
+setup = csrf_exempt(setup)
 
 def facebook_login(request, template='socialregistration/facebook.html',
     extra_context=dict(), account_inactive_template='socialregistration/account_inactive.html'):

@@ -36,7 +36,6 @@ class UserForm(forms.Form):
 class ClaimForm(forms.Form):
     username = forms.CharField()
     password = forms.CharField(widget=forms.PasswordInput)
-    submitted = forms.CharField(initial='true', widget=forms.HiddenInput)
 
     def __init__(self, user, profile, *args, **kwargs):
         super(ClaimForm, self).__init__(*args, **kwargs)
